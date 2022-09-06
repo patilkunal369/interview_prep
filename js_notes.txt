@@ -1,0 +1,146 @@
+1. Everything in javascript is executed in an execution context.
+2. Execution context is divided into two parts 
+    1. Memory (variable environment) : Contains the variables in key value pairs and function definition
+    2. Code (Thread of execution) : It is a thread in which the code is executed one line at a time.
+3. javascript is synchronous single threaded language.
+
+4. In creation phase variable are stored in memory as undefined.
+5. For every function invocation a new execution context is created. 
+6. return keyword return the control to the parent execution context.
+
+7. Js engine maintains a call stack to maintain the execution sequence.
+8. At the start of the execution the global execution context is pushed into the stack.
+9. For every new function invocation or execution context creation it is pushed to the stack. on completion of the execution it is popped from the stack and return the control to Top of the stack.
+
+10. Hoisting is a mechanism where memory is allocated to all the variables and function before execution. Variables are given undefined value and function definition is stored in memory. Functions can be called before their declaration because they are already present in the memory.
+11. If a variable is not defined in a the code then it will result in not defined error.
+12. In case of a arrow function var getName = () => {}, getName is treated as a variable and allocated accordingly. So if it gets executed before declaration browser will throw error that getName is not a function.
+
+13. For an any program the js engine creates a global execution context and a global space. The global space contains the window object which provides some default methods and all the globally defined variables and functions.
+14. In global execution context this === window.
+
+15. Each execution context has a Lexical environment. Lexical environment contains the local memory of the EC and a reference to the Lexical environment of the parent.
+16. When searching for value of a variable the js engine will first search the local memory and if not found it will go through all the lexical environments till it finds it or ends at the global EC. This mechanism of traversing all the lexical environments to find a variable is called Scope Chain.
+
+17. Variables declared as let or const are hoisted and assigned undefined value in a separate than the global space(window or this object). The time between this hoisting and the actual assignment of a value to the variable is called Temporal dead zone.
+18. If the variable is used while in TDZ it will result in reference error(cannot access variable before initialization).
+19. let variables cannot be redeclared. It will result in syntax error.
+19. var variables can be redeclared.
+20. const variables need to be initialed with a value when declared. let variables can be declared without any value.
+
+21. Closure is combination of the function and its scope.
+22. When a function is returned from another function will return a closure i.e function itself and its scope.
+23. The returned function still has the reference to its variables from where it was declared.
+24. This will happen with any number of nesting levels.
+25. function x() {
+        for (var i = 1; i <= 5; i++) {
+            setTimeout(function () {
+                console.log(i);
+            }, i * 1000);
+        }
+        console.log("Namaste JavaScript");
+    }
+    x();
+
+    a. Here it will output  6 6 6 6 6, because for every iteration of the for loop the set setTimeout will have reference to the same i variables. Before the first timeout expires the value of i has already changed to 6. So now for all the subsequent timeouts the values will be 6
+    b. This can be avoided by using let variable as it has block scope. For each iteration (block) the variable being refereed is unique.
+    c. To fix it without using the let variable we can put the setTimeOut in a new function.This way for every iteration a new closure will be created with the function argument and the setTimeOut.
+
+    function x() {
+    for (var i = 1; i <= 5; i++)
+        function close() {
+        setTimeout(function () {
+            console.log(i);
+        }, i * 1000);
+        }
+    close(i);
+    console.log("Namaste JavaScript");
+    }
+    x();
+
+26. First Class Functions: The functions are treated any other variables. 
+    1. Function can be saved into a variables,
+    2. they can be passed to a function as argument 
+    3. and they can be returned from a function as well.
+
+27. when a function is passed as an argument to a function, the passed function is called a Callback Function. This function passed as and argument can be called back at anytime in the function.
+28. For eg. setTimeOut takes a callback function as its first argument which gets called after the specified timeout expires.
+
+29. The browser provides some web api which are used for asynchronous tasks in js. 
+30. Components used for asynchronous tasks : 
+    1. Web api environment
+    2. Event Loop
+    3. Call Back Queue
+    4. Micro Task Queue
+31. When a setTimeout is encountered in the code the callback function gets registered in the web api env and the specified time is attached to it. When the timer expires the callback function is pushed to the callback queue.
+32. The Event Loop keeps track of the call stack and the callback queue. It pushes the functions in the queue to the call stack when the call stack is empty, till then the callback function have to wait.
+33. In case of callback functions from promises, they are pushed into the micro task queue. Micro task queue has more priority over cb queue. Only after the MT queue is empty, the callback queue is addressed.
+34. The timeout defined in setTimeOut is the minimum timeout the function waits, it could have to wait for longer if there are tasks in the micro task queue.
+
+35. How to create a promise? const promise = new Promise()
+36. How to resolve or reject a promise? 
+    const promise = new Promise((resolve, reject)=>{
+        setTimeout(()=> {
+            resolve() or reject()
+        }, 1000)
+    })
+    resolve and reject are function which change the state of the promise when called.
+    Arguments can be passed to resolve and reject. These arguments are available as parameter to the call back functions.
+
+    // Resolve scenario
+    const promiseResolve = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        // Food truck found
+        // Change status from ' pending ' to ' fulfilled "
+        resolve("Bringing tacos");
+    }, 5000);
+    });
+
+    // Reject scenario
+    const promiseReject = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        // Food truck not found
+        // Change status from ' pending ' to ' rejected '
+        reject("Not bringing tacos . Food truck not there .");
+    }, 5000);
+    });
+
+    promise.then(onFulfillment);
+    promise.catch(onRejection);
+
+    //Callback functions
+
+    const onFulfillment = (result) => {
+        // resolve was called
+        console.log(result);
+        console.log(" Set up the table to eat tacos ");
+    };
+    const onRejection = (error) => {
+        // reject was called
+        console.log(error);
+        console.log(" start cooking pasta ");
+    };
+37. promise.all is used to handle multiple promises. Here all the sub promises need to be fulfilled for the main promise to be fulfilled. As soon as one of the promise gets rejected the main promise will also be rejected.
+    promise.all([promise1, promise2, promise3]).then(()=> console.log("All promises resolved"))
+    This will return a array of results from all the promises.
+38. promise.allSettled will wait for all the promises to complete regardless if it is fulfilled or rejected and return result or error for all.
+39. promise.race will get resolve or reject as soon as one of the promise resolved or rejectes
+
+40. Call and Apply methods. These methods to borrow methods from other objects.
+    function.call(<object will be used as this in the function>, <arguments to the function>)
+
+    let name = {firstName: "adwad", lastName: "dawda", function fullName() { return `${firstName} ${lastName}` }
+    let name2 = {firstName: "adwawdawd", lastName: "dawdawd"}
+
+    name.fullName.call(name2) // adwawdawd dawdawd
+
+41. Bind method returns a function which is boind to the object that is passed to it.
+    let printMyName = name.printName(name2)
+
+
+42. Async vs defer attr in script tag
+    1. Without any attr: The browser parses the html and when it comes across a script tag it will fetch the scripts and execute it when it is available. During this time the html parsing is blocked and only continues after script is completed.
+    2. Async: Here the scripts are fetched async-ly and executed as soon as available while blocking the html parsing. While executing it will block html parsing.
+    3. Defer: Here the scripts are getched async-ly and executed only after html parsing is completed.
+
+    in async the sequence of execution is not guaranteed.
